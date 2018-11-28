@@ -5,6 +5,7 @@ import { View } from 'tns-core-modules/ui/core/view';
 import { GridLayout } from 'tns-core-modules/ui/layouts/grid-layout';
 import { isNullOrUndefined, isNumber } from 'tns-core-modules/utils/types';
 import { layout } from 'tns-core-modules/utils/utils';
+import { ScaleTransformer } from './transformers';
 
 import {
   CarouselCommon,
@@ -16,7 +17,8 @@ import {
   indicatorColorUnselectedProperty,
   indicatorPaddingProperty,
   indicatorRadiusProperty,
-  selectedPageProperty
+  selectedPageProperty,
+  TNS_Transformer
 } from './index.common';
 
 export * from './index.common';
@@ -57,8 +59,8 @@ export class Carousel extends CarouselCommon {
 
   set pageIndicatorCount(value: number) {
     if (value) {
-        this.adapter.notifyDataSetChanged();
-        this._pageIndicatorView.setCount(value);
+      this.adapter.notifyDataSetChanged();
+      this._pageIndicatorView.setCount(value);
     }
   }
 
@@ -179,13 +181,25 @@ export class Carousel extends CarouselCommon {
     this.nativeView.setId(this._androidViewId);
     CLog(CLogTypes.info, `this.nativeView = ${this.nativeView}`);
 
+    if (this.peekOffscreenItems) {
+      this.nativeView.setClipToPadding(false);
+      this.nativeView.setPadding(160, 0, 160, 0);
+    }
+
+    if (this.transformer) {
+      const nativeTransformer = this._mapTransformerType(this.transformer);
+      // make sure we have the native transformer to set
+      if (nativeTransformer !== null) {
+        this.nativeView.setPageTransformer(false, nativeTransformer);
+      }
+    }
+
     this._pageIndicatorView = new com.rd.PageIndicatorView(this._context);
     this._pageIndicatorView.setId(this._indicatorViewId);
     this._pagerIndicatorLayoutParams = new org.nativescript.widgets.CommonLayoutParams();
     CLog(CLogTypes.info, `this._pageIndicatorView = ${this._pageIndicatorView}`);
 
     this.nativeView.setAdapter(this.CarouselPagerAdapterClass);
-
     this.nativeView.setOnPageChangeListener(this.CarouselPageChangedListenerClass);
 
     CLog(CLogTypes.info, `Carousel createNativeView returning this.nativeView = ${this.nativeView}`);
@@ -278,6 +292,15 @@ export class Carousel extends CarouselCommon {
   public onItemsChanged(data) {
     CLog(CLogTypes.info, `_onItemsChanged...`);
     this.refresh();
+  }
+
+  private _mapTransformerType(transformer: TNS_Transformer) {
+    switch (transformer) {
+      case TNS_Transformer.SCALE:
+        return new ScaleTransformer(this);
+      default:
+        return null;
+    }
   }
 }
 

@@ -146,6 +146,16 @@ export class CarouselCommon extends GridLayout {
   public indicatorPadding;
 
   /**
+   * If true, the items to left/right of the main carousel item will be slightly visible.
+   */
+  public peekOffscreenItems: boolean;
+
+  /**
+   * Android Only - The transformer to use for animating android carousel items during swiping.
+   */
+  public transformer: TNS_Transformer;
+
+  /**
    * If true console logs will be output to help debug the Carousel events.
    */
   public set debug(value: boolean) {
@@ -376,4 +386,8 @@ export enum IndicatorAnimation {
   'DROP' = 'DROP',
   'SWAP' = 'SWAP',
   'FILL' = 'FILL'
+}
+
+export enum TNS_Transformer {
+  'SCALE' = 'SCALE'
 }
