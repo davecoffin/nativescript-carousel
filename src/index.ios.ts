@@ -3,7 +3,7 @@
 
 import { screen } from 'tns-core-modules/platform';
 import { parse } from 'tns-core-modules/ui/builder';
-import { isNullOrUndefined, isNumber } from 'utils/types';
+import { isNullOrUndefined, isNumber } from 'tns-core-modules/utils/types';
 import {
   autoPagingIntervalProperty,
   bounceProperty,
@@ -80,12 +80,10 @@ export class Carousel extends CarouselCommon {
   }
 
   createNativeView() {
-    // this.nativeView = new DKCarouselView(CGRectMake(0, 0, screen.mainScreen.widthDIPs, 0));
-
-    // Brad - trying this ^^^ might be correct so can just bypass TS warning if so
     this.nativeView = new DKCarouselView(
       UIView.alloc().initWithFrame(CGRectMake(0, 0, screen.mainScreen.widthDIPs, 0))
     );
+
     return this.nativeView;
   }
 
@@ -158,11 +156,39 @@ export class Carousel extends CarouselCommon {
     if (isNullOrUndefined(this.items) || !isNumber(this.items.length)) {
       const nsArray = NSMutableArray.new();
       CLog(CLogTypes.info, `children count: `, this.getChildrenCount());
+
+      const screenWidth = screen.mainScreen.widthPixels;
+      console.log('screenWidth', screenWidth);
+
       this.eachChildView(view1 => {
         if (view1 instanceof CarouselItem) {
-          view1.width = this.width;
+          console.log('view1', view1);
+          view1.horizontalAlignment = 'center';
+
           view1.height = this.height;
+          view1.width = this.width;
+
+          if (this.peekOffscreenItems) {
+            console.log('setting the peek for offscreen items');
+
+            view1.width = { value: 200, unit: 'px' };
+            // view1.paddingRight = { value: screenWidth * 0.15, unit: 'dip' };
+            // view1.paddingLeft = { value: screenWidth * 0.15, unit: 'dip' };
+            // view1.marginRight = { value: screenWidth * 0.15, unit: 'dip' };
+            // view1.marginLeft = { value: screenWidth * 0.15, unit: 'dip' };
+            // view1.effectivePaddingLeft = 50;
+            // view1.effectivePaddingRight = 50;
+          }
+
           const dkCarouselViewItem1 = new DKCarouselViewItem();
+
+          const insets = new UIEdgeInsets();
+          insets.left = 20;
+          insets.right = 20;
+
+          (dkCarouselViewItem1 as UIScrollView).layoutMargins = insets;
+          // (dkCarouselViewItem1 as UIView)
+          // (dkCarouselViewItem1 as UIView).autoresizingMask = UIViewAutoresizing.FlexibleRightMargin;
           dkCarouselViewItem1.view = view1.ios;
           nsArray.addObject(dkCarouselViewItem1);
         }
